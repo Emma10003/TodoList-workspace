@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:todo_app/common/theme_provider.dart';
+
+class ThemePurchaseDialog extends StatelessWidget {
+  final ThemeProvider themeProvider;
+  final AppThemeType theme;
+
+  const ThemePurchaseDialog({
+    super.key,
+    required this.themeProvider,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('테마 구매'),
+      content: Text('${themeProvider.getThemeName(theme)}을(를) 구매하시겠습니까?'
+          '\n가격: ${themeProvider.getThemePrice(theme)}'),
+      actions: [
+        // TextButton(onPressed: () => Navigator.pop(context), child: Text('취소')),
+        TextButton(onPressed: () => context.pop(), child: const Text('취소')),
+        FilledButton(
+            onPressed: () async {
+              // Navigator.pop(context);
+              context.pop();
+              showDialog(
+                  context: context,
+                  builder: (_) => const Center(child: CircularProgressIndicator())
+              );
+
+              final success = await themeProvider.purchaseTheme(theme);
+
+              if(context.mounted) {
+                // Navigator.pop(context);
+                context.pop();
+                if(success) {
+                  themeProvider.changeTheme(theme);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("테마를 구매했습니다."),
+                      backgroundColor: Colors.green,
+                    )
+                  );
+                }
+              }
+            },
+            child: const Text('구매'),
+        )
+      ],
+    );
+  }
+}
