@@ -22,7 +22,7 @@ class ScaffoldScreen extends StatelessWidget {
                     const SnackBar(content: Text("현재 위치 Scaffold에서 보여줄 메신저입니다.")),
                   );
                 },
-                child: Text("화면 구경하기"),
+                child: const Text("버튼 클릭하기"),
             ),
           ],
         )
@@ -61,14 +61,17 @@ class ScaffoldScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-               content: Text("제가 보이십니까?"),
-             duration: Duration(seconds: 2),
-           ),
-         );
-       }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("제가 보이십니까?"),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        child: Icon(Icons.remove_red_eye),
+      ),
       bottomNavigationBar: BottomNavigationBar(items: const [
         BottomNavigationBarItem(
             icon: Icon(Icons.storage),

@@ -18,6 +18,10 @@ dependencies:
   go_router: ^14.0.0
   web: ^1.1.1
   webview_flutter: ^4.4.4
+  # 버전은 모르나 모듈을 추가하고 싶을 때 사용하는 방법
+  # flutter pub add 모듈명
+  # -> flutter pub get 자동 실행됨.
+  google_fonts: ^7.0.2
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +32,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/  #assets 폴더 내부 images 폴더 내의 모든 파일 사용.
+  # assets 을 추가하면 pub get으로 반드시 추가된 세팅이 반영될 수 있도록 해주어야 한다.
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/PretendardVariable.ttf
