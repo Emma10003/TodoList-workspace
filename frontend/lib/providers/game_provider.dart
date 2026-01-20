@@ -35,12 +35,94 @@ class GameProvider extends ChangeNotifier {
   // 게임 루프를 실행하는 타이머 객체
   Timer? _timer;
 
+  // 화면을 꾹 누르고 있는지 여부
+  bool isHolding = false;
+
+  // 게임 시작 후 경과 시간
+  double gameTime = 0;
+
+  // 목표 시간 (초) - 이 시간에 도달하면 게임 종료
+  final double targetTime = 60.0;
+
+  // 목표 점수 - 이 점수에 도달하면 게임 종료
+  final int targetScore = 20;
+
+  // 장애물 통과여부 체크 (중복 점수 방지)
+  bool hasPassedBarrier = false;
+
+  // 이전 프레임에서 충돌 상태였는가 (중복 감점 방지)
+  bool wasColliding = false;
+
 
   // ========== 게임 메서드 ==========
   // 게임을 시작하는 메서드
   // 50ms마다 게임 상태를 업데이트하는 타이머 시작
   void startGame() {
     gameStarted = true;
+    gameTime = 0;
+
+    _timer = Timer.periodic(Duration(milliseconds: 50), (timer) {
+      gameTime += 0.05;  // 게임 시간 증가
+
+      // 목표 시간 도달 시 게임 종료
+      if(gameTime >= targetTime) {
+        stopGame();
+        return;
+      }
+
+      // 목표 점수 도달 시 게임 종료
+      if(score >= targetScore) {
+        stopGame();
+        return;
+      }
+
+      // 꾹 누르기 로직
+      if(isHolding) {
+        // 최대 높이에 도달하지 않았을 때만 상승
+        if(birdY > -0.9) {
+          birdY -= 0.03;
+          time = 0;
+          initialHeight = birdY;
+        } else {
+          // 최대 높이에 도달하면 그 위치 유지
+          birdY = -0.9;
+          time = 0;
+          initialHeight = birdY;
+        }
+      } else {
+        // 일반 탭의 경우
+        time += 0.04;
+        height = initialHeight - 4.9 * time * time;
+
+        // 점프 시작 시점의 새 높이 (초기값 저장)
+        // 물리 공식으로 높이 계산한 height 사용
+        birdY = initialHeight - height;
+      }
+
+      // 장애물 이동
+      if (barrierX < -2) {
+        barrierX = 2.5;  // 오른쪽 끝으로 리셋
+        score++;  // 장애물 피할 때 마다 점수 증가
+      } else {
+        barrierX -= 0.05;  // 장애물 왼쪽으로 지나가는 듯한 이동 처리
+
+        // 장애물 화면 중앙을 지나가면 통과 플래그 리셋
+        if(barrierX < 0 && hasPassedBarrier) {
+          hasPassedBarrier = false;
+        }
+      }
+
+      // 충돌 체크
+      _checkCollision();
+
+      notifyListeners();
+
+      if (_checkGameOver()) {
+        stopGame();
+      }
+    });
+
+    /*gameStarted = true;
 
     _timer = Timer.periodic(Duration(milliseconds: 50), (timer) {
       // 시간 증가
@@ -64,7 +146,26 @@ class GameProvider extends ChangeNotifier {
       notifyListeners();
 
       if(_checkGameOver()) stopGame();  // 게임 중지
-    });
+    });*/
+  }
+
+  // ============= 과제 2: 충돌 체크 메서드 작성하기 =============
+  void _checkCollision() {
+    // 장애물이 새 근처에 있을 때
+    if(barrierX < 0.2 && barrierX > -0.2) {
+      // 장애물과 충돌했을 때 (위쪽 또는 아래쪽 장애물)
+      if(birdY < -0.3 || birdY > 0.3) {
+        // 이전에 충돌 상태가 아니었다면 점수 감소
+        if(!wasColliding) {
+          score = score > 0 ? score - 1 : 0;  // 점수가 음수가 되지 않도록 처리
+          wasColliding = true;
+        }
+      } else {
+        wasColliding = false;
+      }
+    } else {
+      wasColliding = false;
+    }
   }
 
   // 새를 점프시키는 메서드
@@ -93,6 +194,8 @@ class GameProvider extends ChangeNotifier {
   void stopGame() {
     _timer?.cancel();
     gameStarted = false;  // 게임 중지 상태로 변경 후
+    isHolding = false;  // 꾹 누르기 해지
+
     notifyListeners();
   }
 
@@ -106,26 +209,14 @@ class GameProvider extends ChangeNotifier {
     gameStarted = false;
     score = 0;
     barrierX = 2;
+
+    isHolding = false;
+    gameTime = 0;
+    hasPassedBarrier = false;
+    wasColliding = false;
+
     notifyListeners();
   }
-
-  // 화면을 꾹 누르고 있는지 여부
-  bool isHolding = false;
-
-  // 게임 시작 후 경과 시간
-  double gameTime = 0;
-
-  // 목표 시간 (초) - 이 시간에 도달하면 게임 종료
-  final double targetTime = 60.0;
-
-  // 목표 점수 - 이 점수에 도달하면 게임 종료
-  final int targetScore = 20;
-
-  // 장애물 통과여부 체크 (중복 점수 방지)
-  bool hasPassedBarrier = false;
-
-  // 이전 프레임에서 충돌 상태였는가 (중복 감점 방지)
-  bool wasColliding = false;
 
   // 꾹 누르기 시작
   void startHolding() {

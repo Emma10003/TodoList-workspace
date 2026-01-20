@@ -55,36 +55,57 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      // 꾹 누르기 - 시작/종료
-      onLongPressStart: (_) {
+    // Listener = 마우스 클릭 & 터치 동시 제공
+    // PointerDown = 터치하거나, 클릭하거나
+    // PointUp = 터치를 멈추거나, 클릭을 멈추거나
+    return Listener(
+      onPointerDown: (_) {
         // 현재 내가 꾹 눌렀을 때 게임의 상태 확인
         final game = context.read<GameProvider>();
-        if(game.gameStarted) {
+        if(!game.gameStarted) {
+          // 게임이 시작되지 않았으면 게임 시작
+          game.startGame();
+        } else {
+          // 게임 중이면 꾹 누르기 시작
           game.startHolding();
         }
       },
       // 현재 내가 꾹 누르기를 종료했을 때 게임의 상태 확인
-      onLongPressEnd: (_) {
+      onPointerUp: (_) {
         final game = context.read<GameProvider>();
+        game.stopHolding();
         if(game.gameStarted) {
-          game.startHolding();
+          game.jump();
         }
       },
-      onTap: () {
-        // 현재 유저가 한 번 터치했을 때 게임의 상태는
-        final game = context.read<GameProvider>();
-
-        if(!game.gameStarted) game.startGame();
-        game.jump();
-      },
+      // 꾹 누르기 - 시작/종료
+      // onLongPressStart: (_) {
+      //   // 현재 내가 꾹 눌렀을 때 게임의 상태 확인
+      //   final game = context.read<GameProvider>();
+      //   if(game.gameStarted) {
+      //     game.startHolding();
+      //   }
+      // },
+      // // 현재 내가 꾹 누르기를 종료했을 때 게임의 상태 확인
+      // onLongPressEnd: (_) {
+      //   final game = context.read<GameProvider>();
+      //   if(game.gameStarted) {
+      //     game.startHolding();
+      //   }
+      // },
+      // onTap: () {
+      //   // 현재 유저가 한 번 터치했을 때 게임의 상태는
+      //   final game = context.read<GameProvider>();
+      //
+      //   if(!game.gameStarted) game.startGame();
+      //   game.jump();
+      // },
       child: const Scaffold(
         body: Column(
           children: [
             ScoreWidget(),
             GameArea(),
             GroundWidget(),
-            GameOverListener(),
           ],
         )
       )
